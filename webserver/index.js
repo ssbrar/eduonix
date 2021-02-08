@@ -1,10 +1,9 @@
 const http = require('http')
-const url = require('url')
 const fs = require('fs')
 const path = require('path')
 
 
-const mimeTypes = {
+var mimeTypes = {
   ".html": "text/html",
   ".js": "text/javascript",
   ".css": "text/css",
@@ -25,34 +24,36 @@ const hostname = '127.0.0.1';
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-  // const newUrl = new URL(req.url, `http://${req.headers.host}`);
-  const fileName = path.join(process.cwd(), req.url)
-  console.log(fileName);
-  // `http://${req.headers.host}` is equals to http://localhost:3000
-  // newUrl is URL {
-//   href: 'http://localhost:3000/foo',        
-//   origin: 'http://localhost:3000',
-//   protocol: 'http:',
-//   username: '',
-//   password: '',
-//   host: 'localhost:3000',
-//   hostname: 'localhost',
-//   port: '3000',
-//   pathname: '/foo',
-//   search: '',
-//   searchParams: URLSearchParams {},
-//   hash: ''
-// }
-  // console.log(req.headers)
-  // console.log(req.headers.host);
-  // console.log(req.socket.localAddress)
-  // console.log(req.socket.localPort)
-  
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  // OR
-  // res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello World!');
+const fileName = path.join(__dirname, req.url)
+  // console.log(fileName);
+ var stats;
+  try {
+    stats = fs.lstatSync(fileName)
+  } catch (error) {
+    res.writeHead(404, {'Content-Type' : 'text/plain'})
+    res.write('404 Not Found!\n')
+    res.end()
+    return;
+  }
+
+  if(stats.isFile()){
+    var mimeType =  mimeTypes[path.extname(fileName)]
+    // console.log(mimeType);
+    res.writeHead(200, {'Content-Type' : mimeType})
+
+    const fileStream = fs.createReadStream(fileName)
+    fileStream.pipe(res)
+  } else if (stats.isDirectory()){
+    res.writeHead(302, {
+      'Location' : 'index.html'
+    })
+    res.end('hi')
+  } else {
+    res.writeHead(500, {'Content-Type' : 'text/plain'})
+    res.write('500 Internal Error!\n')
+    res.end()
+  }
+
 });
 
 server.listen(port, hostname, () => {
