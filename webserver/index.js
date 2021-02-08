@@ -25,7 +25,9 @@ const hostname = '127.0.0.1';
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-  const newUrl = new URL(req.url, `http://${req.headers.host}`);
+  // const newUrl = new URL(req.url, `http://${req.headers.host}`);
+  const fileName = path.join(process.cwd(), req.url)
+  console.log(fileName);
   // `http://${req.headers.host}` is equals to http://localhost:3000
   // newUrl is URL {
 //   href: 'http://localhost:3000/foo',        
